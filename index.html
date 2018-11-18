@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Como Llego iOS</title>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+  
+  <link rel="stylesheet" href="assets/css/leaflet.css" />
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/css/custom.css" />
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="#">Como Llego Rosario</a>
+      <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#">Disabled</a>
+          </li>
+        </ul>
+      </div> -->
+    </nav>
+  </header>
+
+  <main class="container">
+      <app-root></app-root>
+  </main>  
+
+  <footer class="footer">
+    <div class="container">
+      <span class="text-muted">Versión Beta</span>
+    </div>
+  </footer>
+
+  <script src="assets/js/jquery.js" type="text/javascript"></script>
+  <script src="assets/js/bootstrap.min.js" type="text/javascript"></script>
+  <script src="assets/js/leaflet.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4-src.js" type="text/javascript"></script>
+  <script>
+    var mymap;
+    var recorridos = new Array();
+    var paradas = new Array();
+    var origen = null;
+    var destino = null;
+    var firstProjection = '+proj=tmerc +lat_0=-90 +lon_0=-60 +k=1 +x_0=5500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
+    var secondProjection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +axis=enu";
+
+    $(function() {
+      var accessToken = 'pk.eyJ1Ijoiam9hY29zYW5jaGV6OTUiLCJhIjoiY2oxY2Z3eGsxMDAyNzMycGQ1Mzg0MGthbyJ9.LduXthm1XotJiA2No2Y0Mg';
+      mymap = L.map('map').setView([-32.943, -60.688], 12);
+      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + accessToken, {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox.streets',
+        accessToken: accessToken
+      }).addTo(mymap);     
+    });
+
+    function mostrarRecorridoJs(geoJson, color) {
+      latLngs = [];
+      
+      for(let i = 0; i < geoJson.length;i++) {
+        let pos = proj4(firstProjection,secondProjection, geoJson[i]);
+        latLngs.push([pos[1], pos[0]]);
+      }
+
+      recorridos.push(L.polyline(latLngs, {color: color}).addTo(mymap));
+    }
+
+    function clearRecorrido() {
+      for(let i = 0;i < recorridos.length;i++) {
+        mymap.removeLayer(recorridos[i]);
+      }
+
+      recorridos = new Array();
+    }
+
+    function showOrigen(pos) {
+      pos = proj4(firstProjection,secondProjection, pos);
+      origen = L.marker([pos[1], pos[0]]);
+      origen.addTo(mymap);
+    }
+
+    function removeOrigen() {
+      if(origen) {
+        mymap.removeLayer(origen);
+        origen = null;
+      }
+    }
+
+    function showDestino(pos) {
+      pos = proj4(firstProjection, secondProjection, pos);
+      destino = L.marker([pos[1], pos[0]]);
+      destino.addTo(mymap);
+    }
+
+    function removeDestino() {
+      if(destino) {
+        mymap.removeLayer(destino);
+        destino = null;
+      }
+    }
+
+    function showStops(listaParadas) {
+      for(let i = 0;i < listaParadas.length;i++) {
+        let pos = JSON.parse(listaParadas[i].geoJson).coordinates;
+        pos = proj4(firstProjection, secondProjection, pos);
+        let parada = L.circle([pos[1], pos[0]]);
+        parada.addTo(mymap);
+        paradas.push(parada);
+      }
+    }
+
+    function removeStops() {
+      for(let i = 0;i < paradas.length;i++) {
+        mymap.removeLayer(paradas[i]);
+      }
+
+      paradas = new Array();
+    }
+   </script>
+
+<script type="text/javascript" src="inline.bundle.js"></script><script type="text/javascript" src="polyfills.bundle.js"></script><script type="text/javascript" src="styles.bundle.js"></script><script type="text/javascript" src="vendor.bundle.js"></script><script type="text/javascript" src="main.bundle.js"></script></body>
+</html>
